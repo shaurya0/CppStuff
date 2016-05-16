@@ -15,16 +15,23 @@ namespace allocator
         LinearAllocator() : _offset( 0 ){};
         void* allocate( size_t size, size_t alignment )
         {
-            size_t remaining_space = BUFFER_SIZE - alignment;
+            const size_t remaining_space_before = BUFFER_SIZE - _offset;
+            size_t remaining_space = BUFFER_SIZE - _offset;
+
             void *buf_ptr = reinterpret_cast<void*>( &_buffer[_offset] );
             void *ptr = std::align( alignment, size, buf_ptr, remaining_space );
+            if ( remaining_space_before != remaining_space)
+            {
+                const int32_t delta = remaining_space_before - remaining_space;
+                _offset += delta;
+            }
+
             if ( nullptr == ptr )
             {
                 std::cout << "failed to allocate" << std::endl;
                 return nullptr;
             }
             _offset += size;
-
             return ptr;
         }
 
