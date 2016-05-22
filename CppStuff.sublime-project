@@ -1,0 +1,31 @@
+{
+	"build_systems":
+	[
+		{
+			"cmd":
+			[
+				"g++",
+				"-std=c++11",
+				"-Wall",
+				"-g",
+				"-O0",
+				"-o",
+				"main",
+				"main.cpp"
+			],
+			"name": "CPP",
+			"working_dir": "${project_path}"
+		},
+	],
+	"folders":
+	[
+		{
+			"file_include_patterns":
+			[
+				"*.cpp",
+				"*.h"
+			],
+			"path": "."
+		}
+	]
+}
