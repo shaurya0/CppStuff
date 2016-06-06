@@ -96,18 +96,34 @@ namespace samples
         }
     };
 
-	//template<typename ITEM>
-	//std::string to_string(Item &&item)
-	//{
-	//	return std::to_string(item);
-	//}
+    std::string to_string(int value)
+    {
+    	return std::to_string(value);
+    }
 
-	//template<>
-	//std::string to_string<char>(char &&item)
-	//{
-	//	return item;
-	//}
+	std::string to_string(float value)
+	{
+		return std::to_string(value);
+	}
+	
+	std::string to_string(char value)
+	{
+		return std::string(&value, 1);
+	}
 
+	std::string to_string(const char *str)
+	{
+		return std::string(str);
+	}
+
+
+	inline size_t max_write(const size_t offset, const size_t len, const size_t MAX_BUFFER_LEN)
+	{
+		if (offset >= MAX_BUFFER_LEN)
+			return 0;
+
+		return (offset + len) < MAX_BUFFER_LEN ? len : (MAX_BUFFER_LEN - offset);
+	}
 
     template<typename ITEM_TYPE>
     void snprintf_helper( char *buffer, const size_t MAX_BUFFER_LEN, size_t &buffer_offset, const char *fmt, size_t &fmt_offset, const std::vector<PrintfFMTMetadata> &fmt_metadata, size_t &idx, ITEM_TYPE &&item)
@@ -116,22 +132,23 @@ namespace samples
         const size_t position = metadatum.position;
         assert( position > fmt_offset );
 
-		const size_t num_chars = position - fmt_offset;
-		size_t buffer_end = std::min(buffer_offset + num_chars, MAX_BUFFER_LEN);
+		const size_t len = position - fmt_offset;
+		const size_t max_len = max_write(buffer_offset, len, MAX_BUFFER_LEN);
 
         // copy raw text
-        std::copy( fmt + fmt_offset, fmt + position, buffer + buffer_offset );
-        buffer_offset += position - fmt_offset;
-        fmt_offset = position + 2;
-        const size_t remaining_buffer = MAX_BUFFER_LEN - buffer_offset;
+        std::copy( fmt + fmt_offset, fmt + fmt_offset + max_len, buffer + buffer_offset);
 
-        const std::string value_as_string = std::to_string( item );
+        buffer_offset += max_len;
+        fmt_offset = max_len == len ? position + 2 : fmt_offset + max_len;
+
+        const std::string value_as_string = to_string( item );
         auto str_begin = value_as_string.cbegin();
         auto str_end = value_as_string.cend();
-        const auto str_length = std::distance( str_begin, str_end );
-        assert( str_length + position < remaining_buffer );
-        std::copy( str_begin, str_end, buffer + buffer_offset);
-        buffer_offset += str_length;
+        auto str_len = (size_t)std::distance( str_begin, str_end );
+
+		const size_t max_write_len = max_write(buffer_offset, str_len, MAX_BUFFER_LEN);
+        std::copy( str_begin, str_begin + max_write_len, buffer + buffer_offset);
+        buffer_offset += max_write_len;
         ++idx;
     }
 
@@ -168,12 +185,12 @@ namespace samples
         size_t buffer_offset = 0;
         size_t metadata_idx = 0;
         const size_t MAX_BUFFER_LEN = n - 1; // reserve for null termination
-        snprintf_recurse( buffer, n, buffer_offset, format, fmt_offset, fmt_metadata, metadata_idx, args... );
+        snprintf_recurse( buffer, MAX_BUFFER_LEN, buffer_offset, format, fmt_offset, fmt_metadata, metadata_idx, args... );
 
         const size_t N = strlen( format );
-        const size_t M = std::min( N, n );
+		const size_t M = max_write(buffer_offset, N - fmt_offset, MAX_BUFFER_LEN);
 
-        std::copy( format + fmt_offset, format + M, buffer + buffer_offset );
+        std::copy( format + fmt_offset, format + M + fmt_offset, buffer + buffer_offset );
         return 0;
     }
 
