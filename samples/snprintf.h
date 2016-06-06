@@ -164,7 +164,7 @@ namespace samples
     void snprintf_recurse( char *buffer, const size_t MAX_BUFFER_LEN, size_t &buffer_offset, const char *fmt, size_t &fmt_offset, const std::vector<PrintfFMTMetadata> &fmt_metadata, size_t &idx, ITEM_TYPE &&item, Args&&... args)
     {
         snprintf_helper( buffer, MAX_BUFFER_LEN, buffer_offset, fmt, fmt_offset, fmt_metadata, idx, item);
-        snprintf_recurse( buffer, MAX_BUFFER_LEN, buffer_offset, fmt, fmt_offset, fmt_metadata, idx, args... );
+        snprintf_recurse( buffer, MAX_BUFFER_LEN, buffer_offset, fmt, fmt_offset, fmt_metadata, idx, std::forward<Args>(args)... );
     }
 
 
@@ -185,7 +185,7 @@ namespace samples
         size_t buffer_offset = 0;
         size_t metadata_idx = 0;
         const size_t MAX_BUFFER_LEN = n - 1; // reserve for null termination
-        snprintf_recurse( buffer, MAX_BUFFER_LEN, buffer_offset, format, fmt_offset, fmt_metadata, metadata_idx, args... );
+        snprintf_recurse( buffer, MAX_BUFFER_LEN, buffer_offset, format, fmt_offset, fmt_metadata, metadata_idx, std::forward<Args>(args)... );
 
         const size_t N = strlen( format );
 		const size_t M = max_write(buffer_offset, N - fmt_offset, MAX_BUFFER_LEN);
